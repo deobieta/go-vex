@@ -6,6 +6,8 @@ name: OSPS Compliance
 
 on:
   push:
+    branches:
+      - "fix-compliance-workflow"
   workflow_dispatch:
 
 permissions: {}
@@ -67,7 +69,7 @@ jobs:
 
       - name: Generate MFA attestation
         env:
-           GITHUB_TOKEN: ${{ github.token }}
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
             snappy snap builtin:github/mfa.yaml -v ORG=${{ github.event.repository.owner.login }} --attest > attestations/mfa.intoto.json
             bnd statement attestations/mfa.intoto.json --out attestations/mfa.bundle.json
@@ -77,7 +79,7 @@ jobs:
       - if: github.event.organization.login != ''
         name: Generate org attestation
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           snappy snap builtin:github/org.yaml -v BRANCH=main -v REPO=${{ github.event.repository.name }} -v ORG=${{ github.event.organization.login }} --attest > attestations/org.intoto.json
           bnd statement attestations/org.intoto.json --out attestations/org.bundle.json
@@ -86,7 +88,7 @@ jobs:
 
       - name: Generate branch rules attestation
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           snappy snap builtin:github/branch-rules.yaml -v BRANCH=main -v REPO=${{ github.event.repository.name }} -v ORG=${{ github.event.repository.owner.login }} --attest > attestations/branch.intoto.json
           bnd statement attestations/branch.intoto.json --out attestations/branch.bundle.json
@@ -95,7 +97,7 @@ jobs:
 
       - name: Generate repository attestation
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           snappy snap builtin:github/repo.yaml -v BRANCH=main -v REPO=${{ github.event.repository.name }} -v ORG=${{ github.event.repository.owner.login }} --attest > attestations/repo.intoto.json
           bnd statement attestations/repo.intoto.json --out attestations/repo.bundle.json
@@ -104,7 +106,7 @@ jobs:
 
       - name: "Generate Scorecard Attestation"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           scorecard --repo=carabiner-dev/demo-repo  --format=intoto  > attestations/scorecard.intoto.json
           bnd statement attestations/scorecard.intoto.json --out attestations/scorecard.bundle.json          
@@ -112,7 +114,7 @@ jobs:
 
       - name: Attest tests
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           beaker run . --attest -o attestations/tests.intoto.json
           bnd statement attestations/tests.intoto.json --out attestations/tests.bundle.json
@@ -130,7 +132,7 @@ jobs:
 
       - name: "Assemble VEX and attest OSV results"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           vexflow assemble --repo=${{ github.repository }} --triage-repo=${{ github.event.repository.owner.login }}/.vexflow  > attestations/main.openvex.json
           bnd predicate attestations/main.openvex.json --subject=sha1:${{ github.sha }} --out attestations/openvex.bundle.json --type="https://openvex.dev/ns/v0.2.0"        
