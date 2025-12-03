@@ -1,6 +1,6 @@
 module github.com/openvex/go-vex
 
-go 1.24.8
+go 1.24.6
 
 require (
 	github.com/google/go-cmp v0.7.0
